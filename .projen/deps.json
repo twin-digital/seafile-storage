@@ -9,14 +9,6 @@
       "type": "build"
     },
     {
-      "name": "@types/js-yaml",
-      "type": "build"
-    },
-    {
-      "name": "@types/lodash",
-      "type": "build"
-    },
-    {
       "name": "@types/node",
       "version": "^16",
       "type": "build"
@@ -124,14 +116,6 @@
     {
       "name": "constructs",
       "version": "^10.1.249",
-      "type": "runtime"
-    },
-    {
-      "name": "js-yaml",
-      "type": "runtime"
-    },
-    {
-      "name": "lodash",
       "type": "runtime"
     }
   ],

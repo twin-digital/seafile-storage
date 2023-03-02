@@ -1,23 +1,73 @@
-import { App, Stack, StackProps } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Bucket, getQualifiedName, Stack, StackProps, Stage, StageProps } from '@twin-digital/cdk-patterns'
+import * as cdk from 'aws-cdk-lib'
+import * as iam from 'aws-cdk-lib/aws-iam'
+import { StackCapabilities } from 'cdk-pipelines-github'
+import { Construct } from 'constructs'
 
-export class MyStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
-    super(scope, id, props);
+import { CdkPipeline } from './cdk-pipeline'
 
-    // define resources here...
+export type SeafileProps = StackProps
+
+export class SeafileStorageStack extends Stack {
+  constructor(scope: Construct, id: string, props: StackProps) {
+    super(scope, id, {
+      ...props,
+      workload: 'seafile',
+    })
+
+    const bucket = new Bucket(this, 'Bucket', {
+      bucketName: getQualifiedName(this, 'data'),
+    }).bucket
+
+    new iam.Role(this, 'Role', {
+      assumedBy: new iam.AccountPrincipal(''),
+      description: 'Role assumed by the seafile user for accessing the S3 data bucket',
+      inlinePolicies: {
+        DataBucketAccess: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ['s3:GetObject', 's3:DeleteObject', 's3:PutObject'],
+              effect: iam.Effect.ALLOW,
+              resources: [`${bucket.bucketArn}/*`],
+              sid: 'ObjectReadWrite',
+            }),
+            new iam.PolicyStatement({
+              actions: ['s3:GetBucketLocation', 's3:ListBucket'],
+              effect: iam.Effect.ALLOW,
+              resources: [`${bucket.bucketArn}`],
+              sid: 'BasicBucketAccess',
+            }),
+          ],
+        }),
+      },
+      roleName: getQualifiedName(this, 'data-rw'),
+    })
   }
 }
 
-// for development, use account/region from cdk cli
-const devEnv = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION,
-};
+export class SeafileStorageStage extends Stage {
+  constructor(scope: Construct, id: string, props: StageProps) {
+    super(scope, id, props)
 
-const app = new App();
+    new SeafileStorageStack(this, 'SeafileStorage', {})
+  }
+}
 
-new MyStack(app, 'seafile-storage-dev', { env: devEnv });
-// new MyStack(app, 'seafile-storage-prod', { env: prodEnv });
+const app = new cdk.App()
 
-app.synth();
+const pipeline = new CdkPipeline(app)
+
+pipeline.addStageWithGitHubOptions(
+  new SeafileStorageStage(app, 'Dev', {
+    env: {
+      account: '162712779706',
+      region: 'us-east-2',
+    },
+    environmentType: 'dev',
+  }),
+  {
+    stackCapabilities: [StackCapabilities.IAM, StackCapabilities.NAMED_IAM],
+  }
+)
+
+app.synth()

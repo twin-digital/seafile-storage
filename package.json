@@ -35,8 +35,6 @@
   "devDependencies": {
     "@twin-digital/projen": "^0.0.2",
     "@types/jest": "^29.4.0",
-    "@types/js-yaml": "*",
-    "@types/lodash": "^4.14.191",
     "@types/node": "^16",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
@@ -63,9 +61,7 @@
     "@twin-digital/cdk-patterns": "^0.3.2",
     "aws-cdk-lib": "^2.64.0",
     "cdk-pipelines-github": "^0.3.138",
-    "constructs": "^10.1.249",
-    "js-yaml": "^4.1.0",
-    "lodash": "^4.17.21"
+    "constructs": "^10.1.249"
   },
   "engines": {
     "node": ">= 16.13.0"
